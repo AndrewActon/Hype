@@ -18,10 +18,12 @@ class Hype {
     
     var body: String
     var timestamp: Date
+    var recordID:  CKRecord.ID
     
-    init(body: String, timestamp: Date) {
+    init(body: String, timestamp: Date, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString)) {
         self.body = body
         self.timestamp = timestamp
+        self.recordID = recordID
     }
     
 }//End Of Class
@@ -32,13 +34,19 @@ extension Hype {
               let timestamp = ckRecord[HypeStrings.timestampKey] as? Date
         else { return nil }
         
-        self.init(body: body, timestamp: timestamp)
+        self.init(body: body, timestamp: timestamp, recordID: ckRecord.recordID)
+    }
+}//End Of Extension
+
+extension Hype: Equatable {
+    static func == (lhs: Hype, rhs: Hype) -> Bool {
+        return lhs.recordID == rhs.recordID
     }
 }//End Of Extension
 
 extension CKRecord {
     convenience init(hype: Hype) {
-        self.init(recordType: HypeStrings.recordTypeKey)
+        self.init(recordType: HypeStrings.recordTypeKey, recordID: hype.recordID)
         self.setValue(hype.body, forKey: HypeStrings.bodyKey)
         self.setValue(hype.timestamp, forKey: HypeStrings.timestampKey)
         
