@@ -12,6 +12,7 @@ struct HypeStrings {
     static let recordTypeKey = "Hype"
     fileprivate static let bodyKey = "body"
     fileprivate static let timestampKey = "timestamp"
+    fileprivate static let userReferenceKey = "userReference"
 }//End Of Struct
 
 class Hype {
@@ -19,11 +20,13 @@ class Hype {
     var body: String
     var timestamp: Date
     var recordID:  CKRecord.ID
+    var userReference: CKRecord.Reference?
     
-    init(body: String, timestamp: Date, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString)) {
+    init(body: String, timestamp: Date, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString), userReference: CKRecord.Reference?) {
         self.body = body
         self.timestamp = timestamp
         self.recordID = recordID
+        self.userReference = userReference
     }
     
 }//End Of Class
@@ -34,7 +37,9 @@ extension Hype {
               let timestamp = ckRecord[HypeStrings.timestampKey] as? Date
         else { return nil }
         
-        self.init(body: body, timestamp: timestamp, recordID: ckRecord.recordID)
+        let userReference = ckRecord[HypeStrings.userReferenceKey] as? CKRecord.Reference
+        
+        self.init(body: body, timestamp: timestamp, recordID: ckRecord.recordID, userReference: userReference)
     }
 }//End Of Extension
 
@@ -49,12 +54,14 @@ extension CKRecord {
         self.init(recordType: HypeStrings.recordTypeKey, recordID: hype.recordID)
         self.setValue(hype.body, forKey: HypeStrings.bodyKey)
         self.setValue(hype.timestamp, forKey: HypeStrings.timestampKey)
+        self.setValue(hype.userReference, forKey: HypeStrings.userReferenceKey)
         
         //Alternative method:
         /*
         self.setValuesForKeys([
             HypeStrings.bodyKey : hype.body,
             HypeStrings.timestampKey : hype.timestamp
+            HypeStrings.userReferenceKey : hype.userReference
         ])
          */
     }

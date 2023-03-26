@@ -20,7 +20,11 @@ class HypeController {
     
     //MARK: - CRUD
     func saveHype(with text: String, completion: @escaping (Bool) -> Void) {
-        let newHype = Hype(body: text, timestamp: Date())
+        guard let currentUser = UserController.shared.currentUser else { completion(false) ; return }
+        
+        let reference = CKRecord.Reference(recordID: currentUser.recordID, action: .none)
+        
+        let newHype = Hype(body: text, timestamp: Date(), userReference: reference)
         
         let hypeRecord = CKRecord(hype: newHype)
         
@@ -63,6 +67,8 @@ class HypeController {
     }
     
     func update(_ hype: Hype, completion: @escaping (Bool) -> Void) {
+        
+        guard hype.userReference?.recordID == UserController.shared.currentUser?.recordID  else { completion(false) ; return }
         //Step 3 - Define the records to be updated
         let recordToUpdate = CKRecord(hype: hype)
         //Step 2 - Create the requisite operation
@@ -88,6 +94,8 @@ class HypeController {
     }
     
     func delete(_ hype: Hype, completion: @escaping (Bool) -> Void) {
+        guard hype.userReference?.recordID == UserController.shared.currentUser?.recordID else { completion(false) ; return }
+        
         let operation = CKModifyRecordsOperation(recordIDsToDelete: [hype.recordID])
         operation.savePolicy = .changedKeys
         operation.qualityOfService = .userInteractive
