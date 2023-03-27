@@ -21,5 +21,9 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow access to the camera so you can set the profile image and share photos to the Hype list.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow access to the Photo Library so you can set the profile image and share photos to the Hype list.</string>
 </dict>
 </plist>

@@ -5,7 +5,7 @@
 //  Created by Andrew Acton on 3/16/23.
 //
 
-import Foundation
+import UIKit
 import CloudKit
 
 struct HypeStrings {
@@ -13,20 +13,46 @@ struct HypeStrings {
     fileprivate static let bodyKey = "body"
     fileprivate static let timestampKey = "timestamp"
     fileprivate static let userReferenceKey = "userReference"
+    fileprivate static let photoAssetKey = "photoAsset"
 }//End Of Struct
 
 class Hype {
-    
+    //Class Properties
     var body: String
     var timestamp: Date
+    var hypePhoto: UIImage? {
+        get {
+            guard let photoData = self.photoData else { return nil }
+            return UIImage(data: photoData)
+        } set {
+            photoData = newValue?.jpegData(compressionQuality: 0.5)
+        }
+    }
+    var photoData: Data?
+    //CloudKit Properties
     var recordID:  CKRecord.ID
     var userReference: CKRecord.Reference?
+    var photoAsset: CKAsset? {
+        get {
+            let tempDirectory = NSTemporaryDirectory()
+            let tempDirectoryURL = URL(fileURLWithPath: tempDirectory)
+            let fileURL = tempDirectoryURL.appendingPathComponent(UUID().uuidString).appendingPathExtension("jpg")
+            
+            do {
+                try photoData?.write(to: fileURL)
+            } catch {
+                print("Error in \(#function) : \(error.localizedDescription) \n--\n \(error)")
+            }
+            return CKAsset(fileURL: fileURL)
+        }
+    }
     
-    init(body: String, timestamp: Date, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString), userReference: CKRecord.Reference?) {
+    init(body: String, timestamp: Date, hypePhoto: UIImage? = nil, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString), userReference: CKRecord.Reference?) {
         self.body = body
         self.timestamp = timestamp
         self.recordID = recordID
         self.userReference = userReference
+        self.hypePhoto = hypePhoto
     }
     
 }//End Of Class
@@ -39,7 +65,17 @@ extension Hype {
         
         let userReference = ckRecord[HypeStrings.userReferenceKey] as? CKRecord.Reference
         
-        self.init(body: body, timestamp: timestamp, recordID: ckRecord.recordID, userReference: userReference)
+        var foundPhoto: UIImage?
+        if let photoAsset = ckRecord[HypeStrings.photoAssetKey] as? CKAsset {
+            do {
+                let data = try Data(contentsOf: photoAsset.fileURL!)
+                foundPhoto = UIImage(data: data)
+            } catch {
+                print("Could not transform asset to data")
+            }
+        }
+        
+        self.init(body: body, timestamp: timestamp, hypePhoto: foundPhoto, recordID: ckRecord.recordID, userReference: userReference)
     }
 }//End Of Extension
 
@@ -55,6 +91,7 @@ extension CKRecord {
         self.setValue(hype.body, forKey: HypeStrings.bodyKey)
         self.setValue(hype.timestamp, forKey: HypeStrings.timestampKey)
         self.setValue(hype.userReference, forKey: HypeStrings.userReferenceKey)
+        self.setValue(hype.photoAsset, forKey: HypeStrings.photoAssetKey)
         
         //Alternative method:
         /*

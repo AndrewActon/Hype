@@ -20,6 +20,11 @@ class HypeListViewController: UIViewController {
         setupViews()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateViews()
+    }
+    
     //MARK: - Actions
     
     @IBAction func addHypeButtonTapped(_ sender: Any) {
@@ -76,7 +81,7 @@ class HypeListViewController: UIViewController {
                     }
                 }
             } else {
-                HypeController.shared.saveHype(with: text) { success in
+                HypeController.shared.saveHype(with: text, photo: nil) { success in
                     if success {
                         self.updateViews()
                     }
